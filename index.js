@@ -1,8 +1,6 @@
 const Discord = require("discord.js");
 const bot = new Discord.Client();
 
-const keep_alive = require('./keep_alive.js')
-
 const token = process.env.DISCORD_BOT_SECRET;
 
 const commandCooldown = new Set();
