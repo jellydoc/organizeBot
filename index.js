@@ -52,7 +52,7 @@ bot.on("message", message => {
 				if (!message.member.hasPermission("MANAGE_CHANNELS", (explicit = true))) return message.channel.send("You need to have the `MANAGE_CHANNELS` permission to use this command");
 				if (!args[1]) return message.channel.send("You need to say the name of the category you you like to organize")
 				var guild = message.guild;
-				var category = guild.channels.cache.find(c => c.name == args.slice(1).join(" ") && c.type == "category");
+				var category = guild.channels.cache.find(c => c.name.toLowerCase() == (args.slice(1).join(" ")).toLowerCase() && c.type == "category");
 				if (!category) return message.channel.send("Category channel does not exist");
 
 				var alphaDesc = (b, a) => {
