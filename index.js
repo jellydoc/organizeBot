@@ -103,6 +103,78 @@ bot.on("message", message => {
 				})
 			}		
 		break;
+		  
+		case "delete":
+			if(commandCooldown.has(message.guild.id)){
+			var embed = new Discord.MessageEmbed()
+				.setTitle(`Command is on cooldown until the current process finishes`)
+				.setColor(color);
+			message.channel.send(embed);
+			} else {
+				if (!message.channel.permissionsFor(message.guild.me).has("MANAGE_CHANNELS")) return message.channel.send("I need the `MANAGE_CHANNELS` permission to use this command")
+				if (!message.member.hasPermission("MANAGE_CHANNELS", (explicit = true))) return message.channel.send("You need to have the `MANAGE_CHANNELS` permission to use this command");
+				if (!args[1]) return message.channel.send("You need to say the name of the category you you like to delete")
+				var guild = message.guild;
+				var category = guild.channels.cache.find(c => c.name.toLowerCase() == (args.slice(1).join(" ")).toLowerCase() && c.type == "category");
+				if (!category) return message.channel.send("Category channel does not exist");
+
+				var alphaDesc = (b, a) => {
+					if (a.name > b.name) {
+						return -1;
+					}
+					if (b.name > a.name) {
+						return 1;
+					}
+					return 0;
+				};
+
+				var textChannels = new Discord.Collection();
+
+				textChannels.set('__none', category.children.filter(channel => channel.type == 'text').sort(alphaDesc));
+
+				var list = [];
+				var IDarray = [];
+				for (let [categoryID, children] of textChannels) {
+					if (category) list.push(`**${category.name}**`);
+					for (let [, child] of children) {
+						list.push(child.type === 'text' ? child : child.name);
+						IDarray.push(child.id);
+					}
+				}
+
+				var nameArray = [];
+				for (let [categoryID, children] of textChannels) {
+					if (category) list.push(`**${category.name}**`);
+					for (let [, child] of children) {
+						list.push(child.type === 'text' ? child : child.name);
+						nameArray.push(child.name);
+					}
+				}
+
+				message.channel.send(`Deleting channels... estimated time remaining: ${IDarray.length*0.5} seconds`).then((sentMessage) => {
+					commandCooldown.add(message.guild.id);
+					for (i = 0; i < IDarray.length; i++) {
+						task(i);
+					}
+
+					function task(i) { 
+						setTimeout(function() {
+							var channel = message.guild.channels.cache.get(IDarray[i]);
+							channel.delete()
+							if (i == (IDarray.length - 1)) {
+								category.delete()
+								var embed = new Discord.MessageEmbed()
+									.setTitle(`${IDarray.length} channels have been deleted`)
+									.setDescription(`${nameArray.join('\n')}`)
+									.setColor(color)
+								sentMessage.edit(embed);
+								commandCooldown.delete(message.guild.id);
+							}
+						}, 500 * i); 
+					}
+				})
+			}		
+		break;
   }
 });
 
